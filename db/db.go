@@ -64,16 +64,17 @@ func (d *DB) GetVoucher(req *pb.Voucher) (*pb.Voucher, error) {
 
 func (d *DB) listVoucherQuery(req *pb.VoucherRequest) *xorm.Session {
 	ss := d.engine.Table("voucher")
+	if req.GetId() != "" {
+		ss.And("id = ?", req.GetId())
+	}
 	if req.GetName() != "" {
 		ss.And("name LIKE ?", "%"+req.GetName()+"%")
 	}
+	if req.GetPartnerId() != "" {
+		ss.And("partner_id = ?", req.GetPartnerId())
+	}
 	if req.GetState() != "" {
 		ss.And("state = ?", req.GetState())
-	}
-	if req.GetOutdate() {
-		ss.And("end_at < ?", req.GetEndAt())
-	} else {
-		ss.And("end_at > ?", req.GetEndAt())
 	}
 	if req.GetType() != "" {
 		ss.And("type = ?", req.GetType())
@@ -84,7 +85,7 @@ func (d *DB) listVoucherQuery(req *pb.VoucherRequest) *xorm.Session {
 func (d *DB) ListVoucher(req *pb.VoucherRequest) ([]*pb.Voucher, error) {
 	voucher := []*pb.Voucher{}
 	ss := d.listVoucherQuery(req)
-	err := ss.Desc(".created_at").Find(&voucher)
+	err := ss.Desc("created_at").Find(&voucher)
 	if err != nil {
 		log.Println("get list:", err)
 		return nil, err

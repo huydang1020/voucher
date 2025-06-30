@@ -13,12 +13,28 @@ import (
 
 func (v *Voucher) CreateVoucher(ctx context.Context, in *pb.Voucher) (*common.Empty, error) {
 	if in.GetName() == "" {
-		return nil, errors.New(utils.E_invalid_input)
+		return nil, errors.New(utils.E_name_voucher_empty)
 	}
-	if in.GetDiscount() <= 0 && in.GetPointExchange() <= 0 {
-		return nil, errors.New(utils.E_invalid_discount)
+	if in.GetPointExchange() <= 0 {
+		return nil, errors.New(utils.E_point_exchange_empty)
+	}
+	if in.GetTotalQuantity() <= 0 {
+		return nil, errors.New(utils.E_total_quantity_empty)
+	}
+	if in.GetStartAt() == 0 {
+		return nil, errors.New(utils.E_start_at_empty)
+	}
+	if in.GetEndAt() == 0 {
+		return nil, errors.New(utils.E_end_at_empty)
+	}
+	if in.GetEndAt() < time.Now().Unix() {
+		return nil, errors.New(utils.E_end_at_in_the_past)
+	}
+	if in.GetStartAt() >= in.GetEndAt() {
+		return nil, errors.New(utils.E_start_at_end_at_invalid)
 	}
 	in.Id = utils.MakeVoucherId()
+	in.State = pb.Voucher_active.String()
 	in.CreatedAt = time.Now().Unix()
 	_, err := v.Db.InsertVoucher(in)
 	if err != nil {

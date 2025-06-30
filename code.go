@@ -12,8 +12,8 @@ import (
 )
 
 func (v *Voucher) CreateCode(ctx context.Context, in *pb.Code) (*common.Empty, error) {
-	if in.GetCode() == "" || in.GetVoucherId() == "" {
-		return nil, errors.New(utils.E_invalid_input)
+	if in.GetVoucherId() == "" {
+		return nil, errors.New(utils.E_voucher_id_empty)
 	}
 	code := utils.MakeCode()
 	codedata := &pb.Code{

@@ -9,19 +9,6 @@ import (
 	"github.com/huyshop/voucher/utils"
 )
 
-func (v *Voucher) AssignVoucherToUser(ctx context.Context, in *pb.UserVoucher) (*pb.UserVoucher, error) {
-	if in.GetUserId() == "" || in.GetVoucherId() == "" {
-		return nil, errors.New(utils.E_invalid_input)
-	}
-	in.Id = utils.MakeUserVoucherId()
-	in.State = pb.UserVoucher_got.String()
-	uv, err := v.Db.InsertUserVoucher(in)
-	if err != nil {
-		return nil, err
-	}
-	return uv, nil
-}
-
 func (v *Voucher) UseUserVoucher(ctx context.Context, in *pb.UserVoucher) (*pb.UserVoucher, error) {
 	if in.Id == "" {
 		return nil, errors.New(utils.E_not_found_id)
