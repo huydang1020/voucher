@@ -15,7 +15,7 @@ func (v *Voucher) CreateVoucher(ctx context.Context, in *pb.Voucher) (*common.Em
 	if in.GetName() == "" {
 		return nil, errors.New(utils.E_name_voucher_empty)
 	}
-	if in.GetPointExchange() <= 0 {
+	if in.GetType() == pb.Voucher_point.String() && in.GetPointExchange() <= 0 {
 		return nil, errors.New(utils.E_point_exchange_empty)
 	}
 	if in.GetTotalQuantity() <= 0 {
