@@ -57,3 +57,29 @@ func (v *Voucher) UseCode(ctx context.Context, in *pb.Code) (*pb.Code, error) {
 	}
 	return code, nil
 }
+
+func (v *Voucher) VerifyCode(ctx context.Context, in *pb.VerifyCodeRequest) (*common.Empty, error) {
+	voucher, err := v.Db.GetVoucher(&pb.Voucher{Id: in.GetVoucherId()})
+	if err != nil {
+		log.Println("get voucher err:", err)
+		return nil, errors.New(utils.E_voucher_not_existed)
+	}
+	if voucher.GetState() != pb.Voucher_active.String() {
+		return nil, errors.New(utils.E_voucher_not_active)
+	}
+	if voucher.GetEndAt() < time.Now().Unix() {
+		return nil, errors.New(utils.E_voucher_expired)
+	}
+	if in.GetTotalBill() < voucher.GetMinTotalBillValue() {
+		return nil, errors.New(utils.E_total_bill_not_enough)
+	}
+	code, err := v.Db.GetCode(&pb.Code{Id: in.GetCodeId()})
+	if err != nil {
+		log.Println("get code err:", err)
+		return nil, errors.New(utils.E_code_not_existed)
+	}
+	if code.GetState() != pb.Code_got.String() {
+		return nil, errors.New(utils.E_code_state_invalid)
+	}
+	return &common.Empty{}, nil
+}

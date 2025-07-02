@@ -198,6 +198,7 @@ func (d *DB) TransInsertUserVoucher(req *pb.UserVoucher, code *pb.Code) error {
 		ss.Rollback()
 		return errors.New(utils.E_can_not_insert)
 	}
+	req.CreatedAt = time.Now().Unix()
 	_, err = ss.Insert(req)
 	if err != nil {
 		ss.Rollback()
@@ -361,14 +362,18 @@ func (d *DB) listUserVoucherQuery(req *pb.UserVoucherRequest) *xorm.Session {
 		ss.Join("INNER", "voucher", "user_voucher.voucher_id = voucher.id")
 		ss.And("voucher.type = ?", req.GetType())
 	}
+	if req.GetIsStillValid() != "" {
+		ss.Join("INNER", "voucher", "user_voucher.voucher_id = voucher.id")
+		ss.And("voucher.end_at > ?", time.Now().Unix())
+	}
 	if req.GetState() != "" {
-		ss.And("state = ?", req.GetState())
+		ss.And("user_voucher.state = ?", req.GetState())
 	}
 	if req.GetUserId() != "" {
-		ss.And("user_id = ?", req.GetUserId())
+		ss.And("user_voucher.user_id = ?", req.GetUserId())
 	}
 	if req.GetVoucherId() != "" {
-		ss.And("voucher_id = ?", req.GetVoucherId())
+		ss.And("user_voucher.voucher_id = ?", req.GetVoucherId())
 	}
 	return ss
 }

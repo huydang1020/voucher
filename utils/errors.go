@@ -2,7 +2,12 @@ package utils
 
 const (
 	E_not_found               = "not_found"
+	E_voucher_expired         = "voucher_expired"
+	E_voucher_not_active      = "voucher_not_active"
 	E_voucher_not_existed     = "voucher_not_existed"
+	E_total_bill_not_enough   = "total_bill_not_enough"
+	E_code_not_existed        = "code_not_existed"
+	E_code_state_invalid      = "code_state_invalid"
 	E_not_found_voucher_id    = "not_found_voucher_id"
 	E_internal_error          = "internal errors"
 	E_not_found_id            = "not_found_id"
