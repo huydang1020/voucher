@@ -33,4 +33,6 @@ const (
 	E_end_at_in_the_past       = "end_at_in_the_past"
 	E_voucher_quantity_is_out  = "voucher_quantity_is_out"
 	E_voucher_already_redeemed = "voucher_already_redeemed"
+	E_discount_percent_invalid = "discount_percent_invalid"
+	E_discount_amount_invalid  = "discount_amount_invalid"
 )

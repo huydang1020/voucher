@@ -21,18 +21,22 @@ func (v *Voucher) CreateUserVoucher(ctx context.Context, in *pb.UserVoucher) (*p
 	if err != nil {
 		return nil, err
 	}
+	log.Println("in:", in)
+	log.Println("voucher: ", voucher)
 	if voucher.RemainingQuantity == 0 {
 		return nil, errors.New(utils.E_voucher_quantity_is_out)
 	}
 	if voucher.GetType() == pb.Voucher_free.String() {
 		// user chỉ đc 1 code
-		uv, err := v.Db.GetUserVoucher(&pb.UserVoucher{UserId: in.UserId, VoucherId: in.VoucherId})
+		exist, err := v.Db.UserVoucherExist(&pb.UserVoucher{
+			UserId:    in.UserId,
+			VoucherId: in.VoucherId,
+		})
 		if err != nil {
-			log.Println("err: ", err)
 			return nil, err
 		}
-		if uv != nil {
-			return nil, errors.New(utils.E_voucher_quantity_is_out)
+		if exist {
+			return nil, errors.New(utils.E_voucher_already_redeemed)
 		}
 	}
 	code := utils.MakeCode()
@@ -82,6 +86,20 @@ func (v *Voucher) ListUserVouchers(ctx context.Context, in *pb.UserVoucherReques
 	}
 	return &pb.UserVouchers{UserVouchers: list, Total: int32(count)}, nil
 }
+
+func (v *Voucher) ListUserVouchersCustomer(ctx context.Context, in *pb.UserVoucherRequest) (*pb.UserVouchers, error) {
+	log.Println("ListUserVouchers", in)
+	list, err := v.Db.ListUserVoucher(in)
+	if err != nil {
+		return nil, err
+	}
+	count, err := v.Db.CountUserVoucher(in)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UserVouchers{UserVouchers: list, Total: int32(count)}, nil
+}
+
 
 func (v *Voucher) GetUserVoucher(ctx context.Context, in *pb.UserVoucher) (*pb.UserVoucher, error) {
 

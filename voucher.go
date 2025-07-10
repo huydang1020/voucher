@@ -47,6 +47,24 @@ func (v *Voucher) UpdateVoucher(ctx context.Context, in *pb.Voucher) (*common.Em
 	if in.GetId() == "" {
 		return nil, errors.New(utils.E_not_found_id)
 	}
+	voucher, err := v.Db.GetVoucher(&pb.Voucher{Id: in.GetId()})
+	if err != nil {
+		return nil, errors.New(utils.E_not_found_voucher)
+	}
+	if in.GetDiscountPercent() != 0 {
+		if in.GetDiscountPercent() < 0 || in.GetDiscountPercent() > 100 {
+			return nil, errors.New(utils.E_discount_percent_invalid)
+		} else {
+			voucher.DiscountPercent = in.GetDiscountPercent()
+		}
+	}
+	if in.GetDiscountCash() != 0 {
+		if in.GetDiscountCash() < 0 {
+			return nil, errors.New(utils.E_discount_amount_invalid)
+		} else {
+			voucher.DiscountCash = in.GetDiscountCash()
+		}
+	}
 	in.UpdatedAt = time.Now().Unix()
 	if err := v.Db.UpdateVoucher(in); err != nil {
 		return nil, err
@@ -75,6 +93,19 @@ func (v *Voucher) ListVouchers(ctx context.Context, in *pb.VoucherRequest) (*pb.
 		return nil, err
 	}
 	count, err := v.Db.CountVouchers(in)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.Vouchers{Vouchers: list, Total: int32(count)}, nil
+}
+
+func (v *Voucher) ListVouchersCustomer(ctx context.Context, in *pb.VoucherRequest) (*pb.Vouchers, error) {
+	log.Println("in ", in)
+	list, err := v.Db.ListVoucherCustomer(in)
+	if err != nil {
+		return nil, err
+	}
+	count, err := v.Db.CountVouchersCustomer(in)
 	if err != nil {
 		return nil, err
 	}

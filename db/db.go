@@ -93,6 +93,45 @@ func (d *DB) ListVoucher(req *pb.VoucherRequest) ([]*pb.Voucher, error) {
 	return voucher, nil
 }
 
+func (d *DB) listVoucherCustomerQuery(req *pb.VoucherRequest) *xorm.Session {
+	ss := d.engine.Table("voucher")
+	if req.GetId() != "" {
+		ss.And("id = ?", req.GetId())
+	}
+	if req.GetName() != "" {
+		ss.And("name LIKE ?", "%"+req.GetName()+"%")
+	}
+	if req.GetPartnerId() != "" {
+		ss.And("partner_id = ?", req.GetPartnerId())
+	}
+	if req.GetState() != "" {
+		ss.And("state = ?", req.GetState())
+	}
+	if req.GetType() != "" {
+		ss.And("type = ?", req.GetType())
+	}
+	ss.And("remaining_quantity > 0")
+	ss.And("start_at <= ?", time.Now().Unix())
+	ss.And("end_at >= ?", time.Now().Unix())
+	return ss
+}
+
+func (d *DB) ListVoucherCustomer(req *pb.VoucherRequest) ([]*pb.Voucher, error) {
+	voucher := []*pb.Voucher{}
+	ss := d.listVoucherCustomerQuery(req)
+	err := ss.Desc("created_at").Find(&voucher)
+	if err != nil {
+		log.Println("get list:", err)
+		return nil, err
+	}
+	return voucher, nil
+}
+
+func (d *DB) CountVouchersCustomer(req *pb.VoucherRequest) (int64, error) {
+	ss := d.listVoucherCustomerQuery(req)
+	return ss.Count()
+}
+
 func (d *DB) IsVoucherExist(req *pb.Voucher) (bool, error) {
 	b, err := d.engine.Exist(&pb.Voucher{Id: req.Id})
 	if err != nil {
@@ -357,7 +396,7 @@ func (d *DB) InsertUserVoucher(req *pb.UserVoucher) (*pb.UserVoucher, error) {
 }
 
 func (d *DB) GetUserVoucher(req *pb.UserVoucher) (*pb.UserVoucher, error) {
-	uv := &pb.UserVoucher{Id: req.Id}
+	uv := &pb.UserVoucher{Id: req.Id, UserId: req.UserId, VoucherId: req.VoucherId, CodeId: req.CodeId}
 	b, err := d.engine.Get(uv)
 	if err != nil {
 		return nil, err
@@ -366,6 +405,18 @@ func (d *DB) GetUserVoucher(req *pb.UserVoucher) (*pb.UserVoucher, error) {
 		return nil, errors.New(utils.E_not_found_voucher)
 	}
 	return uv, nil
+}
+
+func (d *DB) UserVoucherExist(req *pb.UserVoucher) (bool, error) {
+	b, err := d.engine.Exist(&pb.UserVoucher{
+		UserId:    req.UserId,
+		VoucherId: req.VoucherId,
+		CodeId:    req.CodeId,
+	})
+	if err != nil {
+		return false, err
+	}
+	return b, nil
 }
 
 func (d *DB) listUserVoucherQuery(req *pb.UserVoucherRequest) *xorm.Session {

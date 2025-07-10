@@ -28,6 +28,8 @@ type IDatabase interface {
 	UpdateVoucher(req *pb.Voucher) error
 	DeleteVoucher(req *pb.Voucher) error
 	CountVouchers(req *pb.VoucherRequest) (int64, error)
+	ListVoucherCustomer(req *pb.VoucherRequest) ([]*pb.Voucher, error)
+	CountVouchersCustomer(req *pb.VoucherRequest) (int64, error)
 
 	InsertCode(req *pb.Code) error
 	TransInsertCode(req *pb.Code) error
@@ -45,6 +47,7 @@ type IDatabase interface {
 	UpdateUserVoucher(req *pb.UserVoucher) error
 	DeleteUserVoucher(req *pb.UserVoucher) error
 	CountUserVoucher(req *pb.UserVoucherRequest) (int64, error)
+	UserVoucherExist(req *pb.UserVoucher) (bool, error)
 }
 
 func NewRedisCache(addr, pw string, db int) *redis.Client {
