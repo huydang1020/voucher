@@ -250,8 +250,9 @@ func (d *DB) TransInsertUserVoucher(req *pb.UserVoucher, code *pb.Code) error {
 		ss.Rollback()
 		return err
 	}
-	remainningQuantity := voucher.RemainingQuantity - 1
-	_, err = ss.Cols("remaining_quantity", "updated_at").Update(&pb.Voucher{RemainingQuantity: remainningQuantity, UpdatedAt: time.Now().Unix()}, &pb.Voucher{Id: req.VoucherId})
+	remainingQuantity := voucher.RemainingQuantity - 1
+	usedQuantity := voucher.UsedQuantity + 1
+	_, err = ss.Cols("remaining_quantity", "updated_at").Update(&pb.Voucher{RemainingQuantity: remainingQuantity, UsedQuantity: usedQuantity, UpdatedAt: time.Now().Unix()}, &pb.Voucher{Id: req.VoucherId})
 	if err != nil {
 		ss.Rollback()
 		return err
