@@ -22,7 +22,7 @@ func (v *Voucher) CreateUserVoucher(ctx context.Context, in *pb.UserVoucher) (*p
 		return nil, err
 	}
 	log.Println("in:", in)
-	log.Println("voucher: ", voucher)
+	// log.Println("voucher: ", voucher)
 	if voucher.RemainingQuantity == 0 {
 		return nil, errors.New(utils.E_voucher_quantity_is_out)
 	}
