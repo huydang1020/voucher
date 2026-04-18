@@ -27,21 +27,44 @@ var config *Configs
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading env:", err)
+	
+	// Chỉ load .env nếu file tồn tại (local development)
+	if _, err := os.Stat(".env"); err == nil {
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Warning: Error loading .env file:", err)
+		} else {
+			log.Println("Loaded .env file for local development")
+		}
+	} else {
+		log.Println("No .env file found, using system environment variables")
 	}
+	
 	config = &Configs{
-		GRPCPort:      os.Getenv("GRPC_PORT"),
-		DBPath:        os.Getenv("DB_PATH"),
-		DBName:        os.Getenv("DB_NAME"),
-		RedisAddr:     os.Getenv("REDIS_ADDR"),
-		RedisPassword: os.Getenv("REDIS_PASSWORD"),
-		RedisDb:       os.Getenv("REDIS_DB"),
+		GRPCPort:      getEnv("GRPC_PORT", "4000"),
+		DBPath:        getEnv("DB_PATH", "root:password@tcp(localhost:3306)"),
+		DBName:        getEnv("DB_NAME", "voucher"),
+		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword: getEnv("REDIS_PASSWORD", ""),
+		RedisDb:       getEnv("REDIS_DB", "0"),
 	}
 }
 
+// Helper function để lấy env với default value
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 func startApp(ctx *cli.Context) error {
+	log.Printf("Starting voucher service with config:")
+	log.Printf("  GRPC Port: %s", config.GRPCPort)
+	log.Printf("  DB Path: %s", config.DBPath)
+	log.Printf("  DB Name: %s", config.DBName)
+	log.Printf("  Redis Addr: %s", config.RedisAddr)
+	
 	v, err := NewVoucher(config)
 	if err != nil {
 		log.Fatal(err)
@@ -81,6 +104,7 @@ func appRoot() error {
 
 	return app.Run(os.Args)
 }
+
 func main() {
 	go freeMemory()
 	if err := appRoot(); err != nil {
